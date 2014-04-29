@@ -4,6 +4,7 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -66,8 +67,6 @@ public class ZenReplyModel {
 	private void parserThreadDataResponse(String response) {
 		try {
 			
-			Intent successIntent = new Intent(ZenReplyModel.ZenThreadDataDidFinishedLoad);
-			mContext.sendBroadcast(successIntent);
 			JSONObject json = new JSONObject(response);
 			JSONObject dict = json.getJSONObject("result");
 			
@@ -81,6 +80,9 @@ public class ZenReplyModel {
 			threadData.lights = dict.getString("lights");
 			String content = dict.getString("content");
 			threadData.content = purge(content);
+			
+			Intent successIntent = new Intent(ZenReplyModel.ZenThreadDataDidFinishedLoad);
+			mContext.sendBroadcast(successIntent);
 			return;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -106,6 +108,18 @@ public class ZenReplyModel {
 		return data;
 	}
 	
+	private boolean isArray(JSONObject json, String key) {
+		try {
+			JSONArray array = json.getJSONArray(key);
+			if (array != null) {
+				return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
+		return false;
+	}
+	
 	private void parserThreadRepliesResponse(String response) {
 		try {
 			JSONObject json = new JSONObject(response);
@@ -117,30 +131,61 @@ public class ZenReplyModel {
 			JSONObject data = dict.getJSONObject("data");
 			replies.clear();
 			if (data.has("replies")) {
-				JSONArray repliesJSON = data.getJSONArray("replies");
-				
-				for (int i = 0; i < repliesJSON.length(); i++) {
-					JSONObject object = repliesJSON.getJSONObject(i);
-					ZenThreadReply reply = zenReplyDataWithJSON(object);
-					if (reply != null) {
-						replies.add(reply);
+				if (isArray(data, "replies")) {
+					JSONArray repliesJSON = data.getJSONArray("replies");
+					
+					for (int i = 0; i < repliesJSON.length(); i++) {
+						JSONObject object = repliesJSON.getJSONObject(i);
+						ZenThreadReply reply = zenReplyDataWithJSON(object);
+						if (reply != null) {
+							replies.add(reply);
+						}
+					}
+				}
+				else {
+					JSONObject repliesJSON = data.getJSONObject("replies");
+					Iterator<String> keyIterator = repliesJSON.keys();
+					
+					while (keyIterator.hasNext()) {
+						String key = (String) keyIterator.next();
+						JSONObject object = repliesJSON.getJSONObject(key);
+						ZenThreadReply reply = zenReplyDataWithJSON(object);
+						if (reply != null) {
+							replies.add(reply);
+						}
 					}
 				}
 			}
 			
 			lightReplies.clear();
 			if (data.has("lightReplies")) {
-				JSONArray lightRepliesJSON = data.getJSONArray("lightReplies");
-				
-				for (int i = 0; i < lightRepliesJSON.length(); i++) {
-					JSONObject object = lightRepliesJSON.getJSONObject(i);
-					ZenThreadReply reply = zenReplyDataWithJSON(object);
-					if (reply != null) {
-						lightReplies.add(reply);
+				if (isArray(data, "lightReplies")) {
+					JSONArray lightRepliesJSON = data.getJSONArray("lightReplies");
+					
+					for (int i = 0; i < lightRepliesJSON.length(); i++) {
+						JSONObject object = lightRepliesJSON.getJSONObject(i);
+						ZenThreadReply reply = zenReplyDataWithJSON(object);
+						if (reply != null) {
+							lightReplies.add(reply);
+						}
 					}
 				}
+				else {
+					JSONObject lightRepliesJSON = data.getJSONObject("lightReplies");
+					Iterator<String> keyIterator = lightRepliesJSON.keys();
+					
+					while (keyIterator.hasNext()) {
+						String key = (String) keyIterator.next();
+						JSONObject object = lightRepliesJSON.getJSONObject(key);
+						ZenThreadReply reply = zenReplyDataWithJSON(object);
+						if (reply != null) {
+							lightReplies.add(reply);
+						}
+					}
+					
+				}
+				
 			}
-			
 			
 			Intent successIntent = new Intent(ZenReplyModel.ZenRepliesDidFinishedLoad);
 			mContext.sendBroadcast(successIntent);

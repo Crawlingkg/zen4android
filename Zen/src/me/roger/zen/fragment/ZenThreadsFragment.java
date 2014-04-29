@@ -5,40 +5,35 @@ import java.util.ArrayList;
 import me.roger.zen.R;
 import me.roger.zen.activity.ZenMainActivity;
 import me.roger.zen.adapter.ZenThreadsAdapter;
-import me.roger.zen.application.ZenApplication;
 import me.roger.zen.data.ZenThreadData;
-import me.roger.zen.model.ZenAdsModel;
 import me.roger.zen.model.ZenPhotoModel;
 import me.roger.zen.model.ZenThreadsModel;
-import me.roger.zen.utils.ZenUtils;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.devspark.appmsg.AppMsg;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener2;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 
-
-
 public class ZenThreadsFragment extends Fragment {
 	
 	static final String LOG_TAG = "Zen";
+	static final String ZEN_AD_UNIT_ID = "a1535f6167e679e";
 	public String fid;
 	private PullToRefreshListView mThreadsListView;
 	private ZenThreadsAdapter mThreadsAdapter;
@@ -46,27 +41,13 @@ public class ZenThreadsFragment extends Fragment {
 	private ZenThreadsModel mModel;
 	private Context mContext;
 	private boolean isFirstTime;
-	private ImageView adsView;
-	private ZenPhotoModel photoModel;
+	AdView mAds;
 	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		mContext = getActivity();
-		LinearLayout ads = (LinearLayout)LayoutInflater.from(mContext).inflate(R.layout.zen_ads_frame, null);
-		adsView = (ImageView)ads.findViewById(R.id.zen_ads);
-		adsView.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if (mContext instanceof ZenMainActivity) {
-					ZenAdsModel model = ZenAdsModel.getInstance();
-					ZenMainActivity main = (ZenMainActivity)mContext;
-					main.openUrl(model.getUrl());
-				}
-				
-			}
-		});
+		
 		mThreadsAdapter = new ZenThreadsAdapter(mContext);
 		mThreadsAdapter.array = new ArrayList<ZenThreadData>();
 		mThreadsListView = (PullToRefreshListView)getView().findViewById(R.id.zen_threads_list);
@@ -98,11 +79,13 @@ public class ZenThreadsFragment extends Fragment {
 		
 		ListView actureListView = (ListView)mThreadsListView.getRefreshableView();
 		mList = actureListView;
-		photoModel = null;
-		if (ZenAdsModel.getInstance().isEnabled(fid)) {
-			mList.addHeaderView(ads);
-			photoModel = new ZenPhotoModel();
-		}
+		AdView ads = new AdView(mContext);
+		ads.setAdUnitId(ZEN_AD_UNIT_ID);
+		ads.setAdSize(AdSize.BANNER);
+		mAds = ads;
+		mList.addHeaderView(ads);
+		AdRequest adRequest = new AdRequest.Builder().build();
+		ads.loadAd(adRequest);
 		actureListView.setAdapter(mThreadsAdapter);
 		actureListView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -135,21 +118,15 @@ public class ZenThreadsFragment extends Fragment {
 		filter.addAction(ZenThreadsModel.DidFinishedLoad);
 		filter.addAction(ZenThreadsModel.DidFailedLoad);
 		mContext.registerReceiver(mBroadcastReceiver, filter);
-		
+		mAds.resume();
 		IntentFilter adsFilter = new IntentFilter();
 		adsFilter.addAction(ZenPhotoModel.ZEN_PHOTO_FINISHED);
-		mContext.registerReceiver(mAdsReceiver, adsFilter);
-		
+				
 		if (isFirstTime) {
 			mModel.refresh();
 			ZenMainActivity ac = (ZenMainActivity)mContext;
 			ac.showLoadingView(true);
 			isFirstTime = false;
-			
-			if (photoModel != null) {
-				ZenAdsModel model = ZenAdsModel.getInstance();
-				photoModel.load(model.getTheme());
-			}
 		}
 		
 	}
@@ -159,7 +136,7 @@ public class ZenThreadsFragment extends Fragment {
 		try {
 			mModel.cancel();
 			mContext.unregisterReceiver(mBroadcastReceiver);
-			mContext.unregisterReceiver(mAdsReceiver);	
+			mAds.pause();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -167,33 +144,16 @@ public class ZenThreadsFragment extends Fragment {
 		super.onPause();
 	}
 	
+	@Override
+	public void onDestroy() {
+		mAds.destroy();
+		super.onDestroy();
+	}
+	
 	public void refresh() {
 		mModel.refresh();
 	}
 	
-	private BroadcastReceiver mAdsReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			ZenAdsModel model = ZenAdsModel.getInstance();
-			String action = intent.getAction();
-			if (model.isEnabled(fid) && action.equals(ZenPhotoModel.ZEN_PHOTO_FINISHED)) {
-				Context appContext = ZenApplication.getAppContext();
-
-				Bitmap bm = ZenUtils.decodeImage(appContext
-						.getFilesDir()
-						+ "/"
-						+ ZenPhotoModel.ZEN_TEMP_FILE);
-
-				if (bm != null) {
-					adsView.setImageBitmap(bm);
-					return;
-				}
-
-			}
-		}
-		
-	};
 
 	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 		

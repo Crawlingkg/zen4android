@@ -60,8 +60,8 @@ public class ZenThreadsModel {
 		}
 		try {
 			JSONObject object = new JSONObject(response);
-			
 			JSONArray array = object.getJSONArray("result");
+			
 			if(clearFlag) {
 				threads.clear();
 			}
