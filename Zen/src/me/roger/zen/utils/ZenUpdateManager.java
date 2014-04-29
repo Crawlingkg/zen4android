@@ -13,7 +13,7 @@ public class ZenUpdateManager {
 	public static final String ZEN_NEW_VERSION = "zen_new_version";
 	
 	private static final String ZEN_CHECK_UPDATE_URL = "http://rogerqian.github.io/zen.json";
-	private static final int ZEN_VRESION = 4;
+	private static final int ZEN_VRESION = 5;
 	private static ZenUpdateManager instance;
 	
 	public static ZenUpdateManager getInstance() {
