@@ -22,6 +22,9 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
 import com.devspark.appmsg.AppMsg;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshBase.OnRefreshListener2;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
@@ -31,6 +34,8 @@ import com.handmark.pulltorefresh.library.PullToRefreshListView;
 public class ZenTopicFragment extends Fragment {
 	
 	static final String LOG_TAG = "Zen";
+	static final String ZEN_AD_UNIT_ID = "a1535f6167e679e";
+
 	public int type;
 	private PullToRefreshListView mTopicsListView;
 	private ZenTopicsAdapter mTopicsAdapter;
@@ -38,7 +43,8 @@ public class ZenTopicFragment extends Fragment {
 	private ZenTopicsModel mModel;
 	private Context mContext;
 	private boolean isFirstTime;
-		
+	private AdView mAds;
+	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
@@ -75,6 +81,15 @@ public class ZenTopicFragment extends Fragment {
 		
 		ListView actureListView = (ListView)mTopicsListView.getRefreshableView();
 		mList = actureListView;
+		
+		AdView ads = new AdView(mContext);
+		ads.setAdUnitId(ZEN_AD_UNIT_ID);
+		ads.setAdSize(AdSize.BANNER);
+		mAds = ads;
+		mList.addHeaderView(ads);
+		AdRequest adRequest = new AdRequest.Builder().build();
+		ads.loadAd(adRequest);
+		
 		actureListView.setAdapter(mTopicsAdapter);
 		actureListView.setOnItemClickListener(new OnItemClickListener() {
 			@Override
@@ -102,6 +117,7 @@ public class ZenTopicFragment extends Fragment {
 	@Override
 	public void onResume() {
 		super.onResume();
+		mAds.resume();
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(ZenTopicsModel.DidFinishedLoad);
 		filter.addAction(ZenTopicsModel.DidFailedLoad);
@@ -120,6 +136,7 @@ public class ZenTopicFragment extends Fragment {
 	@Override
 	public void onPause() {
 		try {
+			mAds.pause();
 			mModel.cancel();
 			mContext.unregisterReceiver(mBroadcastReceiver);
 		} catch (Exception e) {
@@ -127,6 +144,12 @@ public class ZenTopicFragment extends Fragment {
 		}
 		
 		super.onPause();
+	}
+	
+	@Override
+	public void onDestroy() {
+		mAds.destroy();
+		super.onDestroy();
 	}
 	
 	public void refresh() {

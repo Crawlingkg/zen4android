@@ -28,7 +28,7 @@ public class ZenPostModel {
 	private static final String ZEN_UPLOAD_URL = "http://bbs.hupu.com/template/fbd/coldwindeditor/upimage.php";
 	private static final String ZEN_UPDATE_SIGN_URL = "http://bbs.hupu.com/post.php?fid=";
 	private static final String ZEN_NEW_POST_URL = "http://bbs.hupu.com/post.php?";
-	private static final String ZEN_TAIL = "<br><br><a href='http://rogerqian.github.io/zen_1.2.1.apk'>来自 Zen For Android </a>";
+	private static final String ZEN_TAIL = "<br><br><a href='http://rogerqian.github.io/zen_1.3.apk'>来自 Zen For Android </a>";
 	private String mTime;
 	private String mFid;
 	private String mSign;

@@ -4,7 +4,6 @@ import me.roger.zen.R;
 import me.roger.zen.fragment.ZenMenuFragment;
 import me.roger.zen.fragment.ZenThreadsFragment;
 import me.roger.zen.fragment.ZenTopicFragment;
-import me.roger.zen.model.ZenAdsModel;
 import me.roger.zen.model.ZenLoginModel;
 import me.roger.zen.model.ZenMyBoardsModel;
 import me.roger.zen.model.ZenNotificationModel;
@@ -33,7 +32,7 @@ import com.umeng.analytics.MobclickAgent;
 
 
 public class ZenMainActivity extends SlidingFragmentActivity {
-	private static final String UMENG_CHANNEL = "wandoujia";
+	private static final String UMENG_CHANNEL = "github";
 	
 	private static final int ZEN_COUNT_TO_LOAD = 10;
 	private ZenLoadingView mLoading;
@@ -46,8 +45,7 @@ public class ZenMainActivity extends SlidingFragmentActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		ZenAdsModel model = ZenAdsModel.getInstance();
-		model.load();
+		
 		getSupportActionBar().setDisplayShowHomeEnabled(false);
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
